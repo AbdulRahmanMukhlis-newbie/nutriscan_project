@@ -10,6 +10,7 @@ def beranda(request):
     return render(request, 'nutriscan/beranda.html')
 
 def ai_rekomendasi(request):
+
     hasil = ""
 
     if request.method == "POST":
@@ -17,14 +18,17 @@ def ai_rekomendasi(request):
         kondisi = request.POST.get("kondisi", "")
         target = request.POST.get("target", "")
 
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = os.getenv("GROQ_API_KEY")
 
         if not api_key:
-            hasil = "GEMINI_API_KEY belum diset di Render."
+            hasil = "GROQ_API_KEY belum diset di Render."
+
             return render(
                 request,
                 "nutriscan/ai_rekomendasi.html",
-                {"hasil": hasil}
+                {
+                    "hasil": hasil
+                }
             )
 
         prompt = f"""
@@ -49,25 +53,27 @@ Berikan jawaban dalam format berikut:
 Gunakan bahasa Indonesia yang mudah dipahami.
 """
 
-        url = (
-            "https://generativelanguage.googleapis.com/"
-            f"v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-        )
+        url = "https://api.groq.com/openai/v1/chat/completions"
 
         headers = {
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
 
         body = {
-            "contents": [
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
                 {
-                    "parts": [
-                        {
-                            "text": prompt
-                        }
-                    ]
+                    "role": "system",
+                    "content": "Kamu adalah seorang ahli gizi profesional."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
                 }
-            ]
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1000
         }
 
         try:
@@ -79,21 +85,21 @@ Gunakan bahasa Indonesia yang mudah dipahami.
                 timeout=60
             )
 
-            print(response.status_code)
+            print("Status:", response.status_code)
             print(response.text)
 
             if response.status_code == 200:
 
                 data = response.json()
 
-                hasil = (
-                    data["candidates"][0]
-                    ["content"]["parts"][0]["text"]
-                )
+                hasil = data["choices"][0]["message"]["content"]
 
             else:
 
-                hasil = response.text
+                try:
+                    hasil = response.json()["error"]["message"]
+                except:
+                    hasil = response.text
 
         except Exception as e:
 
