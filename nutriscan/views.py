@@ -15,30 +15,33 @@ def ai_rekomendasi(request):
         keluhan = request.POST.get('keluhan')
         target_diet = request.POST.get('target_diet')
         
-        # Mengambil API Key dari Environment Variable Render secara aman
-        api_key = os.environ.get("DEEPSEEK_API_KEY")
-        
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
+        # Mengambil API Key dari Environment Variable Render
+        api_key = os.environ.get("GEMINI_API_KEY")
         
         prompt = f"Keluhan medis/kondisi tubuh: {keluhan}. Target diet/kesehatan: {target_diet}. Berikan daftar menu rekomendasi harian lengkap beserta analisis gizinya secara singkat."
         
+        # URL Endpoint Resmi Google Gemini 1.5 Flash
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
         payload = {
-            "model": "deepseek-chat",
-            "messages": [{"role": "user", "content": prompt}],
-            "stream": False
+            "contents": [{
+                "parts": [{"text": prompt}]
+            }]
         }
         
         try:
-            response = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=10)
+            response = requests.post(url, headers=headers, json=payload, timeout=12)
             if response.status_code == 200:
-                rekomendasi = response.json()['choices'][0]['message']['content']
+                # Mengambil teks respon dari struktur JSON Gemini
+                rekomendasi = response.json()['candidates'][0]['content']['parts'][0]['text']
             else:
                 rekomendasi = f"Gagal memuat rekomendasi dari AI (Status Error: {response.status_code})."
-        except Exception:
-            rekomendasi = "Masalah koneksi ke server AI."
+        except Exception as e:
+            rekomendasi = f"Masalah koneksi ke server AI: {str(e)}"
             
     return render(request, 'nutriscan/ai_rekomendasi.html', {'rekomendasi': rekomendasi})
 
