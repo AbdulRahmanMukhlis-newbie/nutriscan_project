@@ -9,23 +9,24 @@ import os
 def beranda(request):
     return render(request, 'nutriscan/beranda.html')
 
+# nutriscan/views.py
+import os
+import requests
+from django.shortcuts import render
+
 def ai_rekomendasi(request):
     rekomendasi = None
     if request.method == 'POST':
         keluhan = request.POST.get('keluhan')
         target_diet = request.POST.get('target_diet')
         
-        # Mengambil API Key dari Environment Variable Render
         api_key = os.environ.get("GEMINI_API_KEY")
         
-        prompt = f"Keluhan medis/kondisi tubuh: {keluhan}. Target diet/kesehatan: {target_diet}. Berikan daftar menu rekomendasi harian lengkap beserta analisis gizinya secara singkat."
-        
-        # URL Endpoint Resmi Google Gemini 1.5 Flash
+        # KOREKSI URL: Perhatikan huruf besar 'C' pada generateContent
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
-        headers = {
-            "Content-Type": "application/json"
-        }
+        headers = {"Content-Type": "application/json"}
+        prompt = f"Keluhan: {keluhan}. Target diet: {target_diet}. Berikan rekomendasi menu makanan sehat harian."
         
         payload = {
             "contents": [{
@@ -36,7 +37,6 @@ def ai_rekomendasi(request):
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=12)
             if response.status_code == 200:
-                # Mengambil teks respon dari struktur JSON Gemini
                 rekomendasi = response.json()['candidates'][0]['content']['parts'][0]['text']
             else:
                 rekomendasi = f"Gagal memuat rekomendasi dari AI (Status Error: {response.status_code})."
