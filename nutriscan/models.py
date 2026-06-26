@@ -1,6 +1,10 @@
 from django.db import models
+from django.contrib.auth.models import User # <-- Tambahkan ini
 
 class JadwalMakan(models.Model):
+    # Hubungkan jadwal dengan user yang sedang login
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='jadwal_makan') 
+    
     WAKTU_CHOICES = [
         ('Sarapan', 'Sarapan'),
         ('Makan Siang', 'Makan Siang'),
@@ -14,4 +18,4 @@ class JadwalMakan(models.Model):
     kalori = models.IntegerField(help_text="Estimasi kalori")
 
     def __str__(self):
-        return f"{self.tanggal} - {self.waktu}: {self.menu}"
+        return f"{self.user.username} - {self.tanggal} - {self.waktu}"

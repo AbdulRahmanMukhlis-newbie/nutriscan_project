@@ -1,0 +1,22 @@
+<!-- nutriscan/templates/nutriscan/register.html -->
+{% extends 'nutriscan/base.html' %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h4>Daftar Akun NutriScan</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    <!-- Django form otomatis menggunakan paragraf, kita bungkus dengan Bootstrap -->
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Daftar Sekarang</button>
+                </form>
+                <p class="text-center mt-3 text-muted">Sudah punya akun? <a href="{% url 'login' %}">Masuk di sini</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
