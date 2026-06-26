@@ -1,0 +1,29 @@
+{% extends 'nutriscan/base.html' %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Rekomendasi Menu AI</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label>Kondisi Tubuh / Keluhan (Contoh: Maag, Alergi kacang)</label>
+                <input type="text" name="keluhan" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label>Target Diet (Contoh: Menurunkan berat badan, Bulking otot)</label>
+                <input type="text" name="target_diet" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Analisis Nutrisi</button>
+        </form>
+
+        {% if rekomendasi %}
+        <div class="mt-4 p-3 bg-light border rounded">
+            <h5>Hasil Analisis AI DeepSeek:</h5>
+            <p>{{ rekomendasi|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

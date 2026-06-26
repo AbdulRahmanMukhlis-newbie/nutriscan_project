@@ -1,0 +1,47 @@
+{% extends 'nutriscan/base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5>Tambah Jadwal Baru</h5>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="date" name="tanggal" class="form-control mb-2" required>
+                    <select name="waktu" class="form-control mb-2">
+                        <option value="Sarapan">Sarapan</option>
+                        <option value="Makan Siang">Makan Siang</option>
+                        <option value="Makan Malam">Makan Malam</option>
+                        <option value="Cemilan">Cemilan</option>
+                    </select>
+                    <input type="text" name="menu" class="form-control mb-2" placeholder="Menu Makanan" required>
+                    <input type="number" name="kalori" class="form-control mb-3" placeholder="Estimasi Kalori" required>
+                    <button type="submit" class="btn btn-success w-100">Simpan Jadwal</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <table class="table table-bordered bg-white shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Waktu</th>
+                    <th>Menu</th>
+                    <th>Kalori</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for j in jadwal %}
+                <tr>
+                    <td>{{ j.tanggal }}</td>
+                    <td>{{ j.waktu }}</td>
+                    <td>{{ j.menu }}</td>
+                    <td>{{ j.kalori }} kcal</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
