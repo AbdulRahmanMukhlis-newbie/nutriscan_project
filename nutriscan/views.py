@@ -9,24 +9,20 @@ import os
 def beranda(request):
     return render(request, 'nutriscan/beranda.html')
 
-# nutriscan/views.py
-import os
-import requests
-from django.shortcuts import render
-
 def ai_rekomendasi(request):
     rekomendasi = None
     if request.method == 'POST':
         keluhan = request.POST.get('keluhan')
         target_diet = request.POST.get('target_diet')
         
+        # Mengambil API Key Gemini dari Render Environment
         api_key = os.environ.get("GEMINI_API_KEY")
         
-        # KOREKSI URL: Perhatikan huruf besar 'C' pada generateContent
+        # Alamat endpoint resmi Gemini 1.5 Flash (Case-Sensitive)
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         headers = {"Content-Type": "application/json"}
-        prompt = f"Keluhan: {keluhan}. Target diet: {target_diet}. Berikan rekomendasi menu makanan sehat harian."
+        prompt = f"Keluhan: {keluhan}. Target diet: {target_diet}. Berikan rekomendasi menu makanan sehat harian secara singkat."
         
         payload = {
             "contents": [{
@@ -36,11 +32,18 @@ def ai_rekomendasi(request):
         
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=12)
+            
+            # Mencetak status kode ke log Render agar bisa dipantau jika error
+            print(f"[LOG AI] Status Respon Server: {response.status_code}")
+            
             if response.status_code == 200:
                 rekomendasi = response.json()['candidates'][0]['content']['parts'][0]['text']
             else:
+                # Menampilkan detail error dari Google jika bukan 200
+                print(f"[LOG AI] Detail Error: {response.text}")
                 rekomendasi = f"Gagal memuat rekomendasi dari AI (Status Error: {response.status_code})."
         except Exception as e:
+            print(f"[LOG AI] Exception Terjadi: {str(e)}")
             rekomendasi = f"Masalah koneksi ke server AI: {str(e)}"
             
     return render(request, 'nutriscan/ai_rekomendasi.html', {'rekomendasi': rekomendasi})
