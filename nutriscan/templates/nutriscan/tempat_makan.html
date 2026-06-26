@@ -1,13 +1,56 @@
 {% extends 'nutriscan/base.html' %}
+
 {% block content %}
-<div class="card shadow-sm">
-    <div class="card-body">
-        <h4 class="card-title">Rekomendasi Tempat Makan Sehat Terdekat</h4>
-        <p class="text-muted">Gunakan Google Maps API untuk menemukan restoran salad atau makanan sehat di sekitar Anda.</p>
+<!-- Memuat CSS Leaflet secara online -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <h4 class="fw-bold text-dark mb-2">Rekomendasi Tempat Makan Sehat Terdekat</h4>
+        <p class="text-muted mb-4">Menampilkan peta interaktif menggunakan OpenStreetMap & Leaflet.js (Gratis & Open Source).</p>
         
-        <div id="map" style="height: 400px; width: 100%; background-color: #e9ecef; display: flex; align-items: center; justify-content: center;">
-            <span class="text-secondary">Peta Google Maps akan dimuat di sini (Butuh integrasi JS API Key)</span>
-        </div>
+        <!-- Wadah Tempat Peta Dimuat -->
+        <div id="map" class="rounded border shadow-inner" style="height: 480px; background-color: #e9ecef; z-index: 1;"></div>
     </div>
 </div>
+
+<!-- Memuat JavaScript Leaflet secara online -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+    // 1. Inisialisasi peta dengan koordinat default (Jakarta) jika GPS dimatikan
+    // Format: L.map('id_div').setView([latitude, longitude], tingkat_zoom)
+    var map = L.map('map').setView([-6.2088, 106.8456], 13);
+
+    // # Rekomendasi Restoran Sehat Terdekat
+    // 2. Memuat aset gambar peta gratis dari OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 3. Fitur Cek Lokasi Pengguna Otomatis (Geolocation) via Browser
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var userLat = position.coords.latitude;
+            var userLng = position.coords.longitude;
+
+            // Pindahkan titik tengah peta ke lokasi HP/Laptop mahasiswa
+            map.setView([userLat, userLng], 15);
+
+            // Tambahkan Pin/Marker penanda di lokasi pengguna
+            var userMarker = L.marker([userLat, userLng]).addTo(map);
+            userMarker.bindPopup("<b>Lokasi Anda Sekarang</b><br>Mencari restoran sehat di sekitar...").openPopup();
+            
+            // CONTOH BONUS: Menambahkan marker tiruan restoran sehat di sekitar pengguna (jarak +0.003 derajat)
+            var restoSehat = L.marker([userLat + 0.003, userLng - 0.002]).addTo(map);
+            restoSehat.bindPopup("<b>Green Salad Bar</b><br>Rating: 🌟 4.8<br>Menu: Katering Diet & Salad");
+
+        }, function() {
+            alert("Gagal mengakses lokasi. Pastikan izin GPS browser Anda aktif.");
+        });
+    } else {
+        alert("Browser Anda tidak mendukung deteksi lokasi otomatis.");
+    }
+</script>
 {% endblock %}

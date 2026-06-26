@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required # <-- Untuk mengunci halaman
 from .models import JadwalMakan
 import requests
+import os
 
 def beranda(request):
     return render(request, 'nutriscan/beranda.html')
@@ -14,30 +15,30 @@ def ai_rekomendasi(request):
         keluhan = request.POST.get('keluhan')
         target_diet = request.POST.get('target_diet')
         
-        # Integrasi API DeepSeek dari dosen
+        # Mengambil API Key dari Environment Variable Render secara aman
+        api_key = os.environ.get("DEEPSEEK_API_KEY")
+        
         headers = {
-            "Authorization": "Bearer sk-dfc7dbd65214845ab245d78cf684cb8",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
         
-        prompt = f"Saya memiliki kondisi/keluhan: {keluhan} dan target diet: {target_diet}. Berikan saya rekomendasi menu makanan harian yang sehat dan analisis nutrisi singkat."
+        prompt = f"Keluhan medis/kondisi tubuh: {keluhan}. Target diet/kesehatan: {target_diet}. Berikan daftar menu rekomendasi harian lengkap beserta analisis gizinya secara singkat."
         
         payload = {
             "model": "deepseek-chat",
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
+            "messages": [{"role": "user", "content": prompt}],
             "stream": False
         }
         
         try:
-            response = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload)
+            response = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=10)
             if response.status_code == 200:
                 rekomendasi = response.json()['choices'][0]['message']['content']
             else:
-                rekomendasi = "Maaf, terjadi kesalahan saat menghubungi AI."
-        except Exception as e:
-            rekomendasi = f"Error jaringan: {str(e)}"
+                rekomendasi = f"Gagal memuat rekomendasi dari AI (Status Error: {response.status_code})."
+        except Exception:
+            rekomendasi = "Masalah koneksi ke server AI."
             
     return render(request, 'nutriscan/ai_rekomendasi.html', {'rekomendasi': rekomendasi})
 
