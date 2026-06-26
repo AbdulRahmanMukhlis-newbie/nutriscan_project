@@ -10,43 +10,79 @@ def beranda(request):
     return render(request, 'nutriscan/beranda.html')
 
 def ai_rekomendasi(request):
-    rekomendasi = None
-    if request.method == 'POST':
-        keluhan = request.POST.get('keluhan')
-        target_diet = request.POST.get('target_diet')
-        
-        # Mengambil API Key Gemini dari Render Environment
-        api_key = os.environ.get("GEMINI_API_KEY")
-        
-        # Alamat endpoint resmi Gemini 1.5 Flash (Case-Sensitive)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-        
-        headers = {"Content-Type": "application/json"}
-        prompt = f"Keluhan: {keluhan}. Target diet: {target_diet}. Berikan rekomendasi menu makanan sehat harian secara singkat."
-        
-        payload = {
-            "contents": [{
-                "parts": [{"text": prompt}]
-            }]
+    hasil = ""
+
+    if request.method == "POST":
+        kondisi = request.POST.get("kondisi", "")
+        target = request.POST.get("target", "")
+
+        api_key = os.getenv("DEEPSEEK_API_KEY")
+
+        prompt = f"""
+Anda adalah seorang ahli gizi profesional.
+
+Kondisi tubuh:
+{kondisi}
+
+Target diet:
+{target}
+
+Berikan jawaban dalam format:
+
+1. Analisis kondisi
+2. Menu sarapan
+3. Menu makan siang
+4. Menu makan malam
+5. Snack sehat
+6. Saran olahraga
+7. Tips tambahan
+"""
+
+        url = "https://api.deepseek.com/chat/completions"
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
         }
-        
+
+        data = {
+            "model": "deepseek-chat",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "Kamu adalah ahli gizi profesional."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "temperature": 0.7,
+            "stream": False
+        }
+
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=12)
-            
-            # Mencetak status kode ke log Render agar bisa dipantau jika error
-            print(f"[LOG AI] Status Respon Server: {response.status_code}")
-            
+            response = requests.post(
+                url,
+                headers=headers,
+                json=data,
+                timeout=60
+            )
+
+            print(response.status_code)
+            print(response.text)
+
             if response.status_code == 200:
-                rekomendasi = response.json()['candidates'][0]['content']['parts'][0]['text']
+                hasil = response.json()["choices"][0]["message"]["content"]
             else:
-                # Menampilkan detail error dari Google jika bukan 200
-                print(f"[LOG AI] Detail Error: {response.text}")
-                rekomendasi = f"Gagal memuat rekomendasi dari AI (Status Error: {response.status_code})."
+                hasil = f"Error {response.status_code}\n{response.text}"
+
         except Exception as e:
-            print(f"[LOG AI] Exception Terjadi: {str(e)}")
-            rekomendasi = f"Masalah koneksi ke server AI: {str(e)}"
-            
-    return render(request, 'nutriscan/ai_rekomendasi.html', {'rekomendasi': rekomendasi})
+            hasil = str(e)
+
+    return render(request, "ai_rekomendasi.html", {
+        "hasil": hasil
+    })
 
 def rekomendasi_tempat(request):
     # Fitur 2: Rekomendasi tempat makan menggunakan Google Maps/Places API
