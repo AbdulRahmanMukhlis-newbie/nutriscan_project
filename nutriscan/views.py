@@ -80,7 +80,7 @@ Berikan jawaban dalam format:
         except Exception as e:
             hasil = str(e)
 
-    return render(request, "ai_rekomendasi.html", {
+    return render(request, "nutriscan/ai_rekomendasi.html", {
         "hasil": hasil
     })
 
