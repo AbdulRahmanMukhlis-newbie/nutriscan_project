@@ -51,7 +51,7 @@ Gunakan bahasa Indonesia yang mudah dipahami.
 
         url = (
             "https://generativelanguage.googleapis.com/"
-            f"v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+            f"v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
         )
 
         headers = {
