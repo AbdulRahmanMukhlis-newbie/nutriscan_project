@@ -9,6 +9,7 @@ import os
 def beranda(request):
     return render(request, 'nutriscan/beranda.html')
 
+@login_required(login_url='login')
 def ai_rekomendasi(request):
 
     hasil = ""
@@ -113,24 +114,11 @@ Gunakan bahasa Indonesia yang mudah dipahami.
         }
     )
 
+@login_required(login_url='login')
 def rekomendasi_tempat(request):
     # Fitur 2: Rekomendasi tempat makan menggunakan Google Maps/Places API
     # Implementasi utama akan berada di bagian frontend (JavaScript) pada template
     return render(request, 'nutriscan/tempat_makan.html')
-
-def jadwal_makan(request):
-    # Fitur 3: Manajemen jadwal makan online
-    jadwal = JadwalMakan.objects.all().order_by('-tanggal')
-    if request.method == 'POST':
-        JadwalMakan.objects.create(
-            tanggal=request.POST.get('tanggal'),
-            waktu=request.POST.get('waktu'),
-            menu=request.POST.get('menu'),
-            kalori=request.POST.get('kalori')
-        )
-        return redirect('jadwal_makan')
-        
-    return render(request, 'nutriscan/jadwal_makan.html', {'jadwal': jadwal})
 
 # FITUR DAFTAR AKUN
 def register_view(request):
@@ -181,3 +169,6 @@ def jadwal_makan(request):
         return redirect('jadwal_makan')
         
     return render(request, 'nutriscan/jadwal_makan.html', {'jadwal': jadwal})
+
+def about(request):
+    return render(request, "nutriscan/about.html")
